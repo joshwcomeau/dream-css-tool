@@ -194,10 +194,27 @@ Unfortunately, React Context doesn't work in Server Components. In fact, React S
 
 This appears to be a known issue with React Server Components. The RFC mentions that this is an [active area of research](https://github.com/reactjs/rfcs/blob/bf51f8755ddb38d92e23ad415fc4e3c02b95b331/text/0000-server-components.md#how-do-you-do-routing).
 
-There's an issue in the styled-components repo that [digs into this](https://github.com/styled-components/styled-components/issues/3856#issuecomment-1591947905), this appears to be the main blocker. There was some discussion that the `React.cache` API could be useful here, since it provides a per-request cache, but I quickly ran into an issue: `cache` is only available in Server Components, and `useServerInsertedHTML` only works in Client Components. I tried to collect the data in `cache` and then pass it to a Client Component that uses `useServerInsertedHTML`, but it didn't work, and I don't know why.
+I learned about this in [an issue in the styled-components repo](https://github.com/styled-components/styled-components/issues/3856#issuecomment-1591947905). This appears to be the main blocker.
 
-**This is currently the biggest blocker.** Based on what I've seen, it just might not be possible to
+A [thread from Sebastian Markbåge](https://twitter.com/sebmarkbage/status/1587615484870098945) shares another interesting possible solution: the `React.cache()` API. React.cache essentially provides a per-request cache, available exclusively in Server Components.
 
-I'm also not sure how this would work with Streaming SSR (although `useServerInsertedHTML` [is Suspense-friendly](https://github.com/vercel/next.js/pull/42293), so maybe it won't be an issue?).
+I did a quick and dirty prototype with this, and it actually works perfectly, but only in _Server_ Components. I got all excited, only to realize that it breaks when you try and use it in Client Components:
 
-## Leveraging existing
+```js
+'use client';
+
+function App() {
+  return <Button>Hello World</Button>;
+}
+
+// 🚫 Error: Not Implemented
+const Button = styled.button`
+  color: red;
+`;
+```
+
+This repository includes my dirty proof-of-concept. I'm hoping that someone who understands all of this stuff a lot better than me can help figure out a workable solution, if such a thing exists!
+
+Here are the relevant files:
+
+TODO

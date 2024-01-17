@@ -1,16 +1,13 @@
-import styled from '../styled.js';
+import React from 'react';
+
+import CountButton from '@/components/CountButton';
+import StaticButton from '@/components/StaticButton';
 
 export default function Home() {
   return (
     <main>
-      <Button>Hello World</Button>
+      {/* <CountButton /> */}
+      <StaticButton />
     </main>
   );
 }
-
-const Button = styled(
-  'button',
-  `
-  color: red;
-`
-);

@@ -2,26 +2,21 @@ import React from 'react';
 
 import { cache } from './components/StyleRegistry';
 
-export default function styled(Tag, css) {
-  return function StyledComponent(props) {
-    let collectedStyles;
-    try {
-      collectedStyles = cache();
-    } catch (err) {
-      collectedStyles = { current: [] };
-    }
+export default function styled(Tag) {
+  return (css) => {
+    return function StyledComponent(props) {
+      let collectedStyles = cache();
 
-    const id = React.useId().replace(/:/g, '');
-    const generatedClassName = `styled-${id}`;
+      // Instead of using the filename, I'm using the `useId` hook to
+      // generate a unique ID for each styled-component.
+      const id = React.useId().replace(/:/g, '');
+      const generatedClassName = `styled-${id}`;
 
-    const styleContent = `.${generatedClassName} { ${css} }`;
+      const styleContent = `.${generatedClassName} { ${css} }`;
 
-    collectedStyles.current.push(styleContent);
+      collectedStyles.push(styleContent);
 
-    return (
-      <>
-        <Tag className={generatedClassName} {...props} />
-      </>
-    );
+      return <Tag className={generatedClassName} {...props} />;
+    };
   };
 }

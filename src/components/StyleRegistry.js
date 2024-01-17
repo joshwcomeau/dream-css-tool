@@ -3,7 +3,7 @@ import React from 'react';
 import StyleInserter from './StyleInserter';
 
 export const cache = React.cache(() => {
-  return { current: [], id: Math.random() };
+  return [];
 });
 
 function StyleRegistry({ children }) {

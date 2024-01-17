@@ -5,7 +5,7 @@ import { useServerInsertedHTML } from 'next/navigation';
 
 function StyleInserter({ styles }) {
   useServerInsertedHTML(() => {
-    return <style>{styles.current.join('\n')}</style>;
+    return <style>{styles.join('\n')}</style>;
   });
 
   return null;
