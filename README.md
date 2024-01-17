@@ -140,7 +140,7 @@ To solve the 2nd problem, CSS-in-JS libraries in Next.js use a "registry" approa
 
 It struck me that it _should_ be possible for this "registry" component to be the _only_ Client Component we need for this stuff, and it would create the only `<style>` tag, collecting all of the styles emitted during that first server-side render.
 
-In practice, though, this doesn't help us solve Problem #1, because there isn't really a way to _collect_ those styles on the server.
+The tricky thing is, how do we actually _collect_ those styles in a Server Component?
 
 My first idea was to use React Context. Maybe we could do something like this:
 
@@ -217,4 +217,13 @@ This repository includes my dirty proof-of-concept. I'm hoping that someone who 
 
 Here are the relevant files:
 
-TODO
+- [styled.js](https://github.com/joshwcomeau/dream-css-tool/blob/main/src/styled.js) — equivalent to `styled` from styled-components.
+- [StyleRegistry.js](https://github.com/joshwcomeau/dream-css-tool/blob/main/src/components/StyleRegistry.js) — The registry that manages the cache. Server Component.
+- [StyleInserter.js](https://github.com/joshwcomeau/dream-css-tool/blob/main/src/components/StyleInserter.js) — The component that injects the styles into the page, using `useServerInsertedHTML`. Client Component.
+
+---
+
+## Other issues and thoughts
+
+- This tool should also work with Streaming SSR; the `<style>` tag should be updated when different parts of the page are streamed in around Suspense boundaries. Fortunately, it seems that `useServerInsertedHTML` [already tackles this](https://github.com/vercel/next.js/pull/42293).
+- I wonder if it would be easier to build a tool that compiles to CSS Modules? CSS Modules are already fully compatible with RSC, already has a sophisticated, battle-tested implementation, etc.
