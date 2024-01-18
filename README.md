@@ -245,9 +245,9 @@ const Link = styled.a`
 `;
 ```
 
-That's the biggest blocker for me, but there are a couple of other things I'm not a fan of:
+That's the biggest blocker for me, but there are a couple of other things I've noticed:
 
-- As far as I can tell, Panda CSS doesn't support route-specific CSS. Every style in every component across the entire application is compiled into a single CSS file.
+- As far as I can tell, Panda CSS doesn't support route-specific CSS. Every style in every component across the entire application is compiled into a single CSS file. I could be wrong about this though, I only did a quick test.
 - Panda CSS compiles to Tailwind-style utility classes. This certainly helps to reduce the filesize of that CSS file, since there are no duplicate CSS declarations, but I'm not a fan of the in-browser debugging experience, where each CSS rule consists of a single declaration.
 
 There's also [Linaria](https://github.com/callstack/linaria/), which has been around for quite a while, and provides a styled-component-like API that compiles to CSS files. The [next-with-linaria](https://github.com/dlehmhus/next-with-linaria/tree/main) package adds support for the Next.js App Router, by cleverly compiling the CSS into CSS Modules, which already have first-class support in Next.js.
