@@ -221,9 +221,49 @@ Here are the relevant files:
 - [StyleRegistry.js](https://github.com/joshwcomeau/dream-css-tool/blob/main/src/components/StyleRegistry.js) — The registry that manages the cache. Server Component.
 - [StyleInserter.js](https://github.com/joshwcomeau/dream-css-tool/blob/main/src/components/StyleInserter.js) — The component that injects the styles into the page, using `useServerInsertedHTML`. Client Component.
 
----
+## Comparison with existing tools
 
-## Other issues and thoughts
+There _are_ several CSS-in-JS tools which don't require a runtime, and are (or could be) compatible with RSC.
 
-- This tool should also work with Streaming SSR; the `<style>` tag should be updated when different parts of the page are streamed in around Suspense boundaries. Fortunately, it seems that `useServerInsertedHTML` [already tackles this](https://github.com/vercel/next.js/pull/42293).
-- I wonder if it would be easier to build a tool that compiles to CSS Modules? CSS Modules are already fully compatible with RSC, already has a sophisticated, battle-tested implementation, etc.
+For example, [Panda CSS](https://panda-css.com/) works by statically analyzing your code and extracting a set of atomic utility classes into a CSS file. This is really cool, but it doesn't quite work for me.
+
+The biggest issue is that it doesn't support component referencing:
+
+```js
+const Quote = styled.blockquote`
+  font-style: italic;
+`;
+
+const Link = styled.a`
+  /* Default styles */
+  color: var(--color-primary);
+
+  /* 🚫 Doesn't work in Panda CSS */
+  ${Quote} & {
+    color: inherit;
+  }
+`;
+```
+
+That's the biggest blocker for me, but there are a couple of other things I'm not a fan of:
+
+- As far as I can tell, Panda CSS doesn't support route-specific CSS. Every style in every component across the entire application is compiled into a single CSS file.
+- Panda CSS compiles to Tailwind-style utility classes. This certainly helps to reduce the filesize of that CSS file, since there are no duplicate CSS declarations, but I'm not a fan of the in-browser debugging experience, where each CSS rule consists of a single declaration.
+
+There's also [Linaria](https://github.com/callstack/linaria/), which has been around for quite a while, and provides a styled-component-like API that compiles to CSS files. The [next-with-linaria](https://github.com/dlehmhus/next-with-linaria/tree/main) package adds support for the Next.js App Router, by cleverly compiling the CSS into CSS Modules, which already have first-class support in Next.js.
+
+Linaria + next-with-linaria is surprisingly great. It supports component referencing, and the output is identical to that of CSS Modules. It's honestly pretty close to exactly what I want. The only little nitpick I could find is that it isn't optimized for Suspense; all of the CSS for a given route is compiled into 1 CSS file, rather than streaming in additional CSS along with the extra HTML/JS.
+
+The trouble is that next-with-linaria is really more of a prototype than a production-ready library. There's a big warning in the README that warns not to use it in production.
+
+I also worry about its longevity; Linaria uses Webpack 5, along with Webpack-specific features like Virtual Modules. Next is in the process of migrating to Turbopack, and so if/when Next drops support for Webpack, it would break this library. It also means that bundling is presumably slower, since it has to use Webpack instead of Turbopack (which is written in Rust and designed to be fast).
+
+I think my ideal CSS tool would not require any sort of bundler integration: I believe it should be sufficient to have a Babel/SWC transform, to generate the class names. The tool I'm imagining would run during the server-side render rather than at compile-time, producing a `<style>` tag rather than a linked CSS file, containing only the styles necessary for the current UI.
+
+## Other things to consider
+
+- This tool should also work with Suspense and Streaming SSR; the `<style>` tag should be updated when different parts of the page are streamed in around Suspense boundaries. Fortunately, it seems that `useServerInsertedHTML` [already tackles this](https://github.com/vercel/next.js/pull/42293).
+- In terms of CSS preprocessing, I think it makes sense to use [Lightning CSS](https://lightningcss.dev/). It offers several improvements over Stylis, the preprocessor used by styled-components:
+  - It's faster (written in Rust).
+  - Vendor prefixing isn't an "all or nothing" equation, we can target specific browsers using `browserslist`.
+  - It does babel-style transpiling for several modern CSS features.
