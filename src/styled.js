@@ -2,6 +2,9 @@ import React from 'react';
 
 import { cache } from './components/StyleRegistry';
 
+// TODO: Ideally, this API would use dot notation (styled.div) in
+// addition to function calls (styled('div')). We should be able to
+// use Proxies for this, like Framer Motion does.
 export default function styled(Tag) {
   return (css) => {
     return function StyledComponent(props) {

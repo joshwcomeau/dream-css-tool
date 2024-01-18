@@ -1,11 +1,12 @@
 import React from 'react';
 import styled from '../styled.js';
 
-export default function CountButton() {
-  return <Button>Static</Button>;
+export default function StaticButton() {
+  return <Button>Static Button</Button>;
 }
 
 const Button = styled('button')`
+  display: block;
   padding: 1rem 2rem;
   border: none;
   border-radius: 4px;
