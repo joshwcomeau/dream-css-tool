@@ -2,7 +2,7 @@ import React from 'react';
 import styled from '../styled.js';
 
 export default function StaticButton() {
-  return <Button primary>Static Button</Button>;
+  return <OtherButton>Static Button</OtherButton>;
 }
 
 const Button = styled.button`
@@ -10,9 +10,12 @@ const Button = styled.button`
   padding: 1rem 2rem;
   border: none;
   border-radius: 4px;
-  background: ${(props) =>
-    props.primary ? "hsl(270deg 100% 30%)" : "hsl(180deg 100% 30%)"};
+  background: hsl(270deg 100% 30%);
   color: white;
   font-size: 1rem;
   cursor: pointer;
+`;
+
+const OtherButton = styled(Button)`
+  color: red;
 `;

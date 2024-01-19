@@ -8,10 +8,11 @@ export const cache = React.cache(() => {
 
 function StyleRegistry({ children }) {
   const collectedStyles = cache();
+  const stylesMap = collectedStyles.map(({ styles }) => styles);
 
   return (
     <>
-      <StyleInserter styles={collectedStyles} />
+      <StyleInserter styles={stylesMap} />
       {children}
     </>
   );

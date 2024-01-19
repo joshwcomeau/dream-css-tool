@@ -15,10 +15,27 @@ import { cache } from './components/StyleRegistry';
  */
 const styled = new Proxy(
   function (Tag) {
+    // Can't use the `useId` hook here because it isn't inside React.
+    const id = generateUniqueId();
+    const generatedClassName = `styled-${id}`;
+
     // The original styled function that creates a styled component
     return (templateStrings, ...interpolatedProps) => {
       return function StyledComponent(props) {
         let collectedStyles = cache();
+
+        const currentStyle = collectedStyles.find((style) => style.id === id);
+        if (currentStyle)
+          return <Tag className={generatedClassName} {...props} />;
+
+        let parentClassName;
+        if (typeof Tag === 'function') {
+          parentClassName = Tag().props.className;
+        }
+
+        const className = parentClassName
+          ? `${parentClassName} ${generatedClassName}`
+          : generatedClassName;
 
         // Concatenate the parts of the template string with the interpolated props.
         const generatedCSS = templateStrings.reduce((acc, current, i) => {
@@ -26,15 +43,12 @@ const styled = new Proxy(
           return acc + current + interpolatedValue;
         }, '');
 
-        // Using the `useId` hook to generate a unique ID for each styled-component.
-        const id = React.useId().replace(/:/g, "");
-        const generatedClassName = `styled-${id}`;
+        collectedStyles.push({
+          id,
+          styles: `.${generatedClassName} { ${generatedCSS} }`,
+        });
 
-        const styleContent = `.${generatedClassName} { ${generatedCSS} }`;
-
-        collectedStyles.push(styleContent);
-
-        return <Tag className={generatedClassName} {...props} />;
+        return <Tag className={className} {...props} />;
       };
     };
   },
@@ -50,5 +64,12 @@ const styled = new Proxy(
     },
   }
 );
+
+function generateUniqueId() {
+  const timestamp = new Date().getTime().toString(16); // Marca de tiempo en hexadecimal
+  const randomPart = (Math.random() * 16 ** 6).toString(16).padStart(6, "0"); // Número aleatorio en hexadecimal
+
+  return `${timestamp}-${randomPart}`.replaceAll('.', '-');
+}
 
 export default styled;
