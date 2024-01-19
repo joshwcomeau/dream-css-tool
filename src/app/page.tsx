@@ -25,7 +25,7 @@ const Wrapper = styled.main`
   border-radius: 8px;
 `;
 
-const Heading = styled.h1`
+const Heading = styled('h1')`
   font-size: 1.5rem;
   margin: 0;
   margin-bottom: 1em;
