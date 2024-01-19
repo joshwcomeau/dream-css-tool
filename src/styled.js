@@ -16,15 +16,21 @@ import { cache } from './components/StyleRegistry';
 const styled = new Proxy(
   function (Tag) {
     // The original styled function that creates a styled component
-    return (css) => {
+    return (templateStrings, ...interpolatedProps) => {
       return function StyledComponent(props) {
         let collectedStyles = cache();
+
+        // Concatenate the parts of the template string with the interpolated props.
+        const generatedCSS = templateStrings.reduce((acc, current, i) => {
+          const interpolatedValue = interpolatedProps[i]?.(props) || "";
+          return acc + current + interpolatedValue;
+        }, '');
 
         // Using the `useId` hook to generate a unique ID for each styled-component.
         const id = React.useId().replace(/:/g, "");
         const generatedClassName = `styled-${id}`;
 
-        const styleContent = `.${generatedClassName} { ${css} }`;
+        const styleContent = `.${generatedClassName} { ${generatedCSS} }`;
 
         collectedStyles.push(styleContent);
 
