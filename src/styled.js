@@ -2,8 +2,8 @@ import React from 'react';
 import { cache } from './components/StyleRegistry';
 
 /**
- * @typedef {(css: string) => React.FunctionComponent<React.HTMLProps<HTMLElement>>} StyledFunction
- * @typedef {Record<keyof JSX.IntrinsicElements, StyledFunction>} StyledInterface
+ * @typedef {(css: TemplateStringsArray) => React.FunctionComponent<React.HTMLProps<HTMLElement>>} StyledFunction
+ * @typedef {Record<keyof JSX.IntrinsicElements, StyledFunction> & { (tag: keyof JSX.IntrinsicElements | React.ComponentType<any>): StyledFunction }} StyledInterface
  */
 
 /**

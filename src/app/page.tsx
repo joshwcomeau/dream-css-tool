@@ -17,7 +17,7 @@ export default function Home() {
   );
 }
 
-const Wrapper = styled('main')`
+const Wrapper = styled.main`
   max-width: 38rem;
   margin: 0 auto;
   padding: 32px;
@@ -25,7 +25,7 @@ const Wrapper = styled('main')`
   border-radius: 8px;
 `;
 
-const Heading = styled('h1')`
+const Heading = styled.h1`
   font-size: 1.5rem;
   margin: 0;
   margin-bottom: 1em;
