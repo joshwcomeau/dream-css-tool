@@ -49,7 +49,10 @@ const styled = new Proxy(
             return <Tag className={currentStyle.fullClassName} {...props} />;
 
           // If they have the same styles but different props, use the parent class name, and the current style one
-          return <Tag className={`${parentClassName} ${currentStyle.className}`} {...props} />;
+          const className = parentClassName
+            ? `${parentClassName} ${currentStyle.className}`
+            : currentStyle.className;
+          return <Tag className={className} {...props} />;
         }
 
         collectedStyles.push({
