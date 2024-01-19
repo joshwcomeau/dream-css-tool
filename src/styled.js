@@ -22,12 +22,12 @@ const styled = new Proxy(
 
         // Concatenate the parts of the template string with the interpolated props.
         const generatedCSS = templateStrings.reduce((acc, current, i) => {
-          const interpolatedValue = interpolatedProps[i]?.(props) || "";
+          const interpolatedValue = interpolatedProps[i]?.(props) || '';
           return acc + current + interpolatedValue;
         }, '');
 
         // Using the `useId` hook to generate a unique ID for each styled-component.
-        const id = React.useId().replace(/:/g, "");
+        const id = React.useId().replace(/:/g, '');
         const generatedClassName = `styled-${id}`;
 
         const styleContent = `.${generatedClassName} { ${generatedCSS} }`;
