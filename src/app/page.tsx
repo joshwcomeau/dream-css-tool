@@ -2,6 +2,7 @@ import React from 'react';
 
 import CountButton from '@/components/CountButton';
 import StaticButton from '@/components/StaticButton';
+import InheritanceDemo from '@/components/InheritanceDemo';
 import styled from '@/styled.js';
 
 export default function Home() {
@@ -13,6 +14,7 @@ export default function Home() {
       */}
       <CountButton />
       <StaticButton />
+      <InheritanceDemo />
     </Wrapper>
   );
 }
