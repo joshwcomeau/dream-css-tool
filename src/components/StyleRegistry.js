@@ -8,7 +8,11 @@ export const cache = React.cache(() => {
 
 function StyleRegistry({ children }) {
   const collectedStyles = cache();
-  const stylesMap = collectedStyles.map(({ styles }) => styles);
+  const stylesMap = React.useMemo(
+    () =>
+      collectedStyles.map(({ className, css }) => `.${className} { ${css} }`),
+    [collectedStyles]
+  );
 
   return (
     <>

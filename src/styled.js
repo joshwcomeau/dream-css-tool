@@ -1,5 +1,6 @@
 import React from 'react';
 import { cache } from './components/StyleRegistry';
+import { areObjectsEqual } from './utils';
 
 /**
  * @typedef {(css: TemplateStringsArray) => React.FunctionComponent<React.HTMLProps<HTMLElement>>} StyledFunction
@@ -15,40 +16,50 @@ import { cache } from './components/StyleRegistry';
  */
 const styled = new Proxy(
   function (Tag) {
-    // Can't use the `useId` hook here because it isn't inside React.
-    const id = generateUniqueId();
-    const generatedClassName = `styled-${id}`;
-
     // The original styled function that creates a styled component
     return (templateStrings, ...interpolatedProps) => {
       return function StyledComponent(props) {
-        let collectedStyles = cache();
+        const collectedStyles = cache();
 
-        const currentStyle = collectedStyles.find((style) => style.id === id);
-        if (currentStyle)
-          return <Tag className={generatedClassName} {...props} />;
+        const id = React.useId().replace(/:/g, '');
+        const generatedClassName = `styled-${id}`;
 
-        let parentClassName;
-        if (typeof Tag === 'function') {
-          parentClassName = Tag().props.className;
-        }
-
-        const className = parentClassName
-          ? `${parentClassName} ${generatedClassName}`
-          : generatedClassName;
+        const { className: propsClassName, children, ...restProps } = props;
 
         // Concatenate the parts of the template string with the interpolated props.
         const generatedCSS = templateStrings.reduce((acc, current, i) => {
-          const interpolatedValue = interpolatedProps[i]?.(props) || "";
+          const interpolatedValue = interpolatedProps[i]?.(props) || '';
           return acc + current + interpolatedValue;
         }, '');
 
+        const currentStyle = collectedStyles.find(
+          (style) => style.css === generatedCSS
+        );
+
+        const parentClassName =
+          typeof Tag === 'function' ? Tag(props)?.props?.className : undefined;
+
+        const fullClassName = parentClassName
+          ? `${parentClassName} ${generatedClassName}`
+          : generatedClassName;
+
+        if (currentStyle) {
+          // If they have the same styles and props, just use the same full class name
+          if (areObjectsEqual(currentStyle.props, restProps))
+            return <Tag className={currentStyle.fullClassName} {...props} />;
+
+          // If they have the same styles but different props, use the parent class name, and the current style one
+          return <Tag className={`${parentClassName} ${currentStyle.className}`} {...props} />;
+        }
+
         collectedStyles.push({
-          id,
-          styles: `.${generatedClassName} { ${generatedCSS} }`,
+          fullClassName,
+          className: generatedClassName,
+          props: restProps,
+          css: generatedCSS,
         });
 
-        return <Tag className={className} {...props} />;
+        return <Tag className={fullClassName} {...props} />;
       };
     };
   },
@@ -64,12 +75,5 @@ const styled = new Proxy(
     },
   }
 );
-
-function generateUniqueId() {
-  const timestamp = new Date().getTime().toString(16); // Marca de tiempo en hexadecimal
-  const randomPart = (Math.random() * 16 ** 6).toString(16).padStart(6, "0"); // Número aleatorio en hexadecimal
-
-  return `${timestamp}-${randomPart}`.replaceAll('.', '-');
-}
 
 export default styled;
