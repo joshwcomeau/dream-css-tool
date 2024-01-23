@@ -11,7 +11,8 @@ const Button = styled.button`
   border: none;
   border-radius: 4px;
   background: ${(props) =>
-    props.primary ? 'hsl(270deg 100% 30%)' : 'hsl(180deg 100% 30%)'};  color: white;
+    props.primary ? 'hsl(270deg 100% 30%)' : 'hsl(180deg 100% 30%)'};
+  color: white;
   font-size: 1rem;
   cursor: pointer;
 `;
