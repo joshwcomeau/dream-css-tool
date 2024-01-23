@@ -1,6 +1,12 @@
 import React from 'react';
 import { cache } from './components/StyleRegistry';
 import { areObjectsEqual } from './utils';
+import {
+  removeCSSComments,
+  interpolateProps,
+  formatCSSBlocks,
+  findExistingStyle,
+} from './helpers';
 
 /**
  * @typedef {(css: TemplateStringsArray) => React.FunctionComponent<React.HTMLProps<HTMLElement>>} StyledFunction
@@ -26,32 +32,42 @@ const styled = new Proxy(
 
         const { className: propsClassName, children, ...restProps } = props;
 
-        // Concatenate the parts of the template string with the interpolated props.
-        const generatedCSS = templateStrings.reduce((acc, current, i) => {
-          const interpolatedValue = interpolatedProps[i]?.(props) || '';
-          return acc + current + interpolatedValue;
-        }, '');
+        const cleanedCSS = removeCSSComments(templateStrings);
 
-        const currentStyle = collectedStyles.find(
-          (style) => style.css === generatedCSS
+        const interpolatedCSS = cleanedCSS.reduce(
+          (acc, current, i) =>
+            acc + current + interpolateProps(interpolatedProps[i], props),
+          ''
         );
 
-        const parentClassName =
-          typeof Tag === 'function' ? Tag(props)?.props?.className : undefined;
+        const {
+          styles: finalCSS,
+          mainBlock,
+          subBlocks,
+        } = formatCSSBlocks(interpolatedCSS, generatedClassName);
 
-        const fullClassName = parentClassName
-          ? `${parentClassName} ${generatedClassName}`
-          : generatedClassName;
+        const matchedStyle = findExistingStyle(collectedStyles, mainBlock, Tag);
 
-        if (currentStyle) {
-          // If they have the same styles and props, just use the same full class name
-          if (areObjectsEqual(currentStyle.props, restProps))
-            return <Tag className={currentStyle.fullClassName} {...props} />;
+        const hasParentComponent = typeof Tag === 'function';
 
-          // If they have the same styles but different props, use the parent class name, and the current style one
-          const className = parentClassName
-            ? `${parentClassName} ${currentStyle.className}`
-            : currentStyle.className;
+        // If tag is another styled-component, we need to get that className in order to use it from the child.
+        const parentClassName = hasParentComponent
+          ? Tag(props)?.props?.className
+          : '';
+
+        // If there's no parentClassName, that space gets removed when trimmed
+        const fullClassName = `${parentClassName} ${generatedClassName}`.trim();
+
+        if (matchedStyle) {
+          // If they have the same styles and props, just use the same full class name (parent className + )
+          if (areObjectsEqual(matchedStyle.props, restProps)) {
+            return <Tag className={matchedStyle.fullClassName} {...props} />;
+          }
+
+          // If they have the same styles but different props, use the current parent class name, and the matched style one
+          const className =
+            `${parentClassName} ${matchedStyle.className}`.trim();
+
           return <Tag className={className} {...props} />;
         }
 
@@ -59,8 +75,14 @@ const styled = new Proxy(
           fullClassName,
           className: generatedClassName,
           props: restProps,
-          css: generatedCSS,
+          css: finalCSS,
         });
+
+        if (subBlocks) {
+          collectedStyles.push({
+            css: subBlocks,
+          });
+        }
 
         return <Tag className={fullClassName} {...props} />;
       };
