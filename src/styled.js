@@ -1,5 +1,6 @@
 import React from 'react';
 import { cache } from './components/StyleRegistry';
+import { areObjectsEqual } from './utils';
 
 /**
  * @typedef {(css: TemplateStringsArray) => React.FunctionComponent<React.HTMLProps<HTMLElement>>} StyledFunction
@@ -18,7 +19,12 @@ const styled = new Proxy(
     // The original styled function that creates a styled component
     return (templateStrings, ...interpolatedProps) => {
       return function StyledComponent(props) {
-        let collectedStyles = cache();
+        const collectedStyles = cache();
+
+        const id = React.useId().replace(/:/g, '');
+        const generatedClassName = `styled-${id}`;
+
+        const { className: propsClassName, children, ...restProps } = props;
 
         // Concatenate the parts of the template string with the interpolated props.
         const generatedCSS = templateStrings.reduce((acc, current, i) => {
@@ -26,15 +32,37 @@ const styled = new Proxy(
           return acc + current + interpolatedValue;
         }, '');
 
-        // Using the `useId` hook to generate a unique ID for each styled-component.
-        const id = React.useId().replace(/:/g, '');
-        const generatedClassName = `styled-${id}`;
+        const currentStyle = collectedStyles.find(
+          (style) => style.css === generatedCSS
+        );
 
-        const styleContent = `.${generatedClassName} { ${generatedCSS} }`;
+        const parentClassName =
+          typeof Tag === 'function' ? Tag(props)?.props?.className : undefined;
 
-        collectedStyles.push(styleContent);
+        const fullClassName = parentClassName
+          ? `${parentClassName} ${generatedClassName}`
+          : generatedClassName;
 
-        return <Tag className={generatedClassName} {...props} />;
+        if (currentStyle) {
+          // If they have the same styles and props, just use the same full class name
+          if (areObjectsEqual(currentStyle.props, restProps))
+            return <Tag className={currentStyle.fullClassName} {...props} />;
+
+          // If they have the same styles but different props, use the parent class name, and the current style one
+          const className = parentClassName
+            ? `${parentClassName} ${currentStyle.className}`
+            : currentStyle.className;
+          return <Tag className={className} {...props} />;
+        }
+
+        collectedStyles.push({
+          fullClassName,
+          className: generatedClassName,
+          props: restProps,
+          css: generatedCSS,
+        });
+
+        return <Tag className={fullClassName} {...props} />;
       };
     };
   },
