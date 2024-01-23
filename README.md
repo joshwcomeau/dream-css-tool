@@ -14,7 +14,7 @@ import styled from 'dream-tool';
 
 function Demo({ width }) {
   return (
-    <Wrapper style={{ '--color:' width > 500 ? 'red' : undefined }}>
+    <Wrapper style={{ '--color': width > 500 ? 'red' : undefined }}>
       Hello world
     </Wrapper>
   );
