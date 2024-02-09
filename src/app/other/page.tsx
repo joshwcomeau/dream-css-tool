@@ -1,20 +1,20 @@
 import React from 'react';
+import Link from "next/link"
 
 import CountButton from '@/components/CountButton';
 import StaticButton from '@/components/StaticButton';
 import styled from '@/styled.js';
-import Link from 'next/link';
 
 export default function Home() {
   return (
     <Wrapper>
-      <Heading>Hello World!</Heading>
+      <Heading>Another page</Heading>
       {/*
         Uncomment this line to see the issue with Client Components:
       */}
       <CountButton />
       <StaticButton />
-      <Link href="/other">Other</Link>
+      <Link href="/">Home</Link>
     </Wrapper>
   );
 }
