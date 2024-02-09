@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { cache } from './components/StyleRegistry';
+import { cache } from './components/cache';
 
 // TODO: Ideally, this API would use dot notation (styled.div) in
 // addition to function calls (styled('div')). We should be able to

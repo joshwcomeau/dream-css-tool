@@ -1,20 +1,14 @@
 import React from 'react';
 
-import StyleInserter from './StyleInserter';
+import StyleRegistryClient from './StyleRegistryClient';
+import StyleRegistryServer from './StyleRegistryServer';
 
-export const cache = React.cache(() => {
-  return [];
-});
-
-function StyleRegistry({ children }) {
-  const collectedStyles = cache();
-
+export default function StyleRegistry({ children }) {
   return (
     <>
-      <StyleInserter styles={collectedStyles} />
+      <StyleRegistryServer />
+      <StyleRegistryClient />
       {children}
     </>
   );
 }
-
-export default StyleRegistry;
